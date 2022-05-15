@@ -6,7 +6,7 @@ let path = require("path");
 let express = require("express");   /* Accessing express module */
 let app = express();  /* app is a request handler function */
 require("dotenv").config({ path: path.resolve(__dirname, 'credentials/.env') })  
-
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));;
 
 const userName = process.env.MONGO_DB_USERNAME;
 const password = process.env.MONGO_DB_PASSWORD;
@@ -20,12 +20,14 @@ let port = process.argv[2];
 app.set("views", path.resolve(__dirname, "templates"));
 app.set("view engine", "ejs");
 
-/* Try with both a valid and invalid URL */
-const nodeFetch = require("node-fetch");
+
 var json; 
-/* Returns a promise */
+var numWins = 0;
+
+
+// Get API and store result into var json
 async function getJSONData() {
-  const result = await nodeFetch(
+  const result = await fetch(
     "https://nhl-score-api.herokuapp.com/api/scores?startDate=2022-5-2&endDate=2022-5-15"
   );
   const data = await result.json();
@@ -42,6 +44,8 @@ async function getJSONData() {
   }
 })();
 
+  
+// run the server
 process.stdout.write("Web Server started and running at http://localhost:" + port + "\n");
 let prompt = "Stop to shutdown the server: ";
 process.stdout.write(prompt);
@@ -57,21 +61,23 @@ process.stdin.on("readable", function () {
 });
 
 
-
+// display homepage
 app.get("/", (request, response) => { 
-    /* This endpoint renders the main page of the application and it will display the contents of the index.ejs template file. */
     response.render("index");
 }); 
+// display the myTeams page
 app.get("/myTeams", (request, response) => { 
-    /* This endpoint displays the displayItems.ejs template with the table of items available. */  
     response.render("myTeams");
 });
-
+// display myTeamsUpdate page by calling displayTeams
 app.get("/myTeamsUpdate", (request, response) => { 
   displayTeams(response)
 });
-app.get("/adminRemove", (request, response) => { 
-  response.render("adminRemove");
+app.get("/removeAll", (request, response) => { 
+  response.render("removeAll");
+});
+app.get("/removeOne", (request, response) => { 
+  response.render("removeOne");
 });
 
 let bodyParser = require("body-parser");
@@ -100,12 +106,12 @@ app.get("/reviewMyTeams", (request, response) => {
     lookUpAllTeams(response);
 });
 
-app.post("/processAdminGPA", (request, response) => {
-  let {gpa} = request.body;
-  lookUpByGPA(gpa, response);
+app.post("/processRemoveOne", (request, response) => {
+  let {name} = request.body;
+  removeOne(response, name);
 });
 
-app.post("/processAdminRemove", (request, response) => {
+app.post("/processRemoveAll", (request, response) => {
   removeAll(response);
 });
 
@@ -192,7 +198,6 @@ async function teamExists(name, dateTime, response) {
     await client.connect();
     let filter = {name: name};
     const result = await client.db(databaseAndCollection.db).collection(databaseAndCollection.collection).findOne(filter);
-    console.log(result)
     if (result){  
       let table = {
         name: name,
@@ -310,12 +315,8 @@ async function teamExists(name, dateTime, response) {
 
 // response.render("processAdminGPA", final);
 
+// called by myTeamsUpdate
 async function displayTeams(response){
-  
-  // const fetchy = await nodeFetch(
-  //   "https://nhl-score-api.herokuapp.com/api/scores?startDate=2022-5-2&endDate=2022-5-15"
-  // );
-  // const json = await fetchy.json();
   const uri = `mongodb+srv://${userName}:${password}@cluster0.avw5l.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
   const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
   try {
@@ -323,7 +324,9 @@ async function displayTeams(response){
     let filter = {};
     const result = await client.db(databaseAndCollection.db).collection(databaseAndCollection.collection).find(filter).toArray();
     
+    // check if there is stuff in database
     if (result){    
+      // get datetime
       var today = new Date();
 
       const daysOfWeek = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"];
@@ -336,61 +339,92 @@ async function displayTeams(response){
       
       let dateTime = "Task completed at " + day + " " + month + " " + today.getDate() + " " + today.getFullYear()+" "+ today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds() + " GMT-0400 (Eastern Daylight Time)";
       
+      // get a list of all the teams currently in the database
       let listOfTeamsString = "";
       result.forEach(x => listOfTeamsString += JSON.stringify(x.name).replace(/"/g,"") +",");
       let listOfTeams = listOfTeamsString.slice(0, -1).split(",");
-      let teamList="";
-      let i = 0;
-      let currTeam = listOfTeams[i];
-      let currGame = 1;
 
-      listOfTeams.forEach(throughJSON)
+      let teamList="";
+      let currGame = 1;
+      let currTeam = "";
+
+      // for each team, go through the JSON and find the relevant data
+      listOfTeams.forEach(throughJSON);
 
       function throughJSON(team){
-        currGame = 0;
-        teamList += "<h2>" + currTeam + "</h2><br/><table border=1><tr><th>Game</th><th>Opponent</th><th>Score</th><th>Result</th></tr>";
-        json.forEach(makeTable)
-        i = i + 1;
+        currGame = 1;
+        currTeam = team;
+        // make a new table for eacj team
+        teamList += "<hr/><h2>" + team + "</h2><br/><table border=1><tr><th>Game</th><th>Opponent</th><th>Score</th><th>Result</th></tr>";
+        // call this helper function to go through the game array for every date (json is indexed by dates)
+        json.forEach(makeTable);
         teamList+= "</table>";
+        winsLeft = 4-numWins;
+        teamList += "<br/>" + currTeam + " needs only " + winsLeft  + " wins to advance!" ; 
+        numWins = 0; 
       }
 
       // go through each day
       function makeTable(x){
+        // so x is a date, thus we need to investigate the games array for that date
         let games = x.games;
-        games.forEach(actuallyMakeTable)       
+        // go through each game on that day to find matches
+        games.forEach(actuallyMakeTable) ;
+    
       }
-
+      
       // go through all games on a day
       function actuallyMakeTable(game){
+        // check if the away team is the current team we are making the table for
         if(game.teams.away.abbreviation === currTeam){
           let homeTeam = game.teams.home.abbreviation;
-          let homeScore = game.scores.homeTeam;
-          let awayScore = game.scores.currTeam;
-          let duborL = "W";
-          if (homeScore > awayScore){
-            duborL = "L";
+          let score = JSON.stringify(game.scores).split(",");
+          let homeScore = 0;
+          let awayScore = Number(score[0].charAt(score[0].length-1));
+          if (score.length == 2){
+            homeScore = Number(score[1].charAt(score[1].length-2));
+          } else {
+            homeScore = Number(score[1].charAt(score[1].length-1));
           }
-          teamList+= "<tr><td>"+currGame+"</td><td>"+ "@" + homeTeam + "</td><th>" + homeScore + "-" + awayScore + "</td><td>"+duborL+"</td></tr>";
+          let duborL = "L";
+          if (homeScore < awayScore){
+            duborL = "W";
+            numWins = numWins + 1;
+            teamList+= "<tr><td>"+currGame+"</td><td>"+ "@ " + homeTeam + "</td><th>" + awayScore + "-" + homeScore + "</td><td>"+duborL+"</td></tr>";
+          } else {
+            teamList+= "<tr><td>"+currGame+"</td><td>"+ "@ " + homeTeam + "</td><th>" + homeScore + "-" + awayScore + "</td><td>"+duborL+"</td></tr>";
+          }
           currGame = currGame+1;
         }
+        // check if the home team is the current team we are making the table for
         else if (game.teams.home.abbreviation === currTeam){
           let awayTeam = game.teams.away.abbreviation;
-          let awayScore = game.scores.awayTeam;
-          let homeScore = game.scores.currTeam;
+          let score = JSON.stringify(game.scores).split(",");
+          let homeScore = 0;
+          let awayScore = Number(score[0].charAt(score[0].length-1));
+          if (score.length == 2){
+            homeScore = Number(score[1].charAt(score[1].length-2));
+          } else {
+            homeScore = Number(score[1].charAt(score[1].length-1));
+          }
           let duborL = "W";
           if (homeScore < awayScore){
             duborL = "L";
+            teamList+= "<tr><td>"+currGame+"</td><td>"+ "vs " + awayTeam + "</td><th>" + awayScore + "-" + homeScore + "</td><td>"+duborL+"</td></tr>";
+          } else {
+            numWins = numWins + 1;
+            teamList+= "<tr><td>"+currGame+"</td><td>"+ "vs " + awayTeam + "</td><th>" + homeScore + "-" + awayScore + "</td><td>"+duborL+"</td></tr>";
           }
-          teamList+= "<tr><td>"+currGame+"</td><td>"+ "vs" + awayTeam + "</td><th>" + homeScore + "-" + awayScore + "</td><td>"+duborL+"</td></tr>";
+          
           currGame = currGame+1;
         }
       }
 
       let table = {
-        teamList: teamList,
+        orderTable: teamList,
         dateTime: dateTime
       };
-      response.render("reviewMyTeams", table);
+      response.render("myTeamsUpdate", table);
     } else {
       var today = new Date();
 
@@ -404,10 +438,10 @@ async function displayTeams(response){
   
       let dateTime = "Task completed at " + day + " " + month + " " + today.getDate() + " " + today.getFullYear()+" "+ today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds() + " GMT-0400 (Eastern Daylight Time)";
       let table = {
-        teamList: "EMPTY!",
+        orderTable: "EMPTY!",
         dateTime: dateTime
       };
-      response.render("reviewMyTeams", table);
+      response.render("myTeamsUpdate", table);
     }
 
   } catch (e) {
@@ -415,9 +449,27 @@ async function displayTeams(response){
   } finally {
       await client.close();
   }
+  var today = new Date();
+
+  const daysOfWeek = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"];
+  let d = today.getDay();
+  let day = daysOfWeek[d];
+
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  let m = today.getMonth();
+  let month = months[m];
+
+  let dateTime = "Task completed at " + day + " " + month + " " + today.getDate() + " " + today.getFullYear()+" "+ today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds() + " GMT-0400 (Eastern Daylight Time)";
   
-  response.render("myTeamsUpdate");
+  let table = {
+    orderTable: "error occurred",
+    dateTime: dateTime
+  };
+  
+  response.render("myTeamsUpdate", table);
 }
+
+
 async function removeAll(response) {
   const uri = `mongodb+srv://${userName}:${password}@cluster0.avw5l.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
   const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -429,7 +481,27 @@ async function removeAll(response) {
     };
 
 
-    response.render("processAdminRemove", table);
+    response.render("processRemoveAll", table);
+  } catch (e) {
+      console.error(e);
+  } finally {
+      await client.close();
+  }
+}
+
+async function removeOne(response, targetName) {
+  const uri = `mongodb+srv://${userName}:${password}@cluster0.avw5l.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+  let filter = {name: targetName};
+  try {
+    await client.connect();
+    const result = await client.db(databaseAndCollection.db)
+                 .collection(databaseAndCollection.collection)
+                 .deleteOne(filter);
+    let table = {
+      team: targetName
+    };
+    response.render("processRemoveOne", table);
   } catch (e) {
       console.error(e);
   } finally {
