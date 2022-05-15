@@ -1,0 +1,30 @@
+<!-- DO NOT MODIFY THIS FILE -->
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<title>Removing All Applications</title>
+</head>
+
+<body>
+	<h1>Removing All Applications</h1>
+	<form action="/processAdminRemove" method="post" onsubmit="return validate()">
+		<input type="submit" value="Remove all applicants"/>
+	</form>
+	<hr/>
+	<a href="/">HOME</a>
+</body>
+	<script>
+		function validate(){
+		let text = "Are you sure you want to remove all applications?";
+		if (confirm(text) == true){
+		return true;
+		} else {
+		return false;
+		}
+		}
+	</script>
+	
+</html>
+
