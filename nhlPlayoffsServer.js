@@ -23,6 +23,7 @@ app.set("view engine", "ejs");
 
 var json; 
 var numWins = 0;
+var numLoss = 0;
 
 
 // Get API and store result into var json
@@ -360,8 +361,15 @@ async function displayTeams(response){
         json.forEach(makeTable);
         teamList+= "</table>";
         winsLeft = 4-numWins;
-        teamList += "<br/>" + currTeam + " needs only " + winsLeft  + " wins to advance!" ; 
+        if (winsLeft == 0){
+          teamList += "<br/>" + currTeam + " has advanced to the second round!" ; 
+        } else if (numLoss == 4) {
+          teamList += "<br/>" + currTeam + " has been eliminated from the 2022 NHL Playoffs :(" ; 
+        } else {
+          teamList += "<br/>" + currTeam + " needs only " + winsLeft  + " wins to advance!" ; 
+        }
         numWins = 0; 
+        numLoss = 0;
       }
 
       // go through each day
@@ -392,6 +400,7 @@ async function displayTeams(response){
             numWins = numWins + 1;
             teamList+= "<tr><td>"+currGame+"</td><td>"+ "@ " + homeTeam + "</td><th>" + awayScore + "-" + homeScore + "</td><td>"+duborL+"</td></tr>";
           } else {
+            numLoss = numLoss + 1;
             teamList+= "<tr><td>"+currGame+"</td><td>"+ "@ " + homeTeam + "</td><th>" + homeScore + "-" + awayScore + "</td><td>"+duborL+"</td></tr>";
           }
           currGame = currGame+1;
@@ -409,6 +418,7 @@ async function displayTeams(response){
           }
           let duborL = "W";
           if (homeScore < awayScore){
+            numLoss = numLoss + 1;
             duborL = "L";
             teamList+= "<tr><td>"+currGame+"</td><td>"+ "vs " + awayTeam + "</td><th>" + awayScore + "-" + homeScore + "</td><td>"+duborL+"</td></tr>";
           } else {
@@ -425,6 +435,7 @@ async function displayTeams(response){
         dateTime: dateTime
       };
       response.render("myTeamsUpdate", table);
+      return;
     } else {
       var today = new Date();
 
@@ -442,6 +453,7 @@ async function displayTeams(response){
         dateTime: dateTime
       };
       response.render("myTeamsUpdate", table);
+      return;
     }
 
   } catch (e) {
