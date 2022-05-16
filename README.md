@@ -10,4 +10,4 @@ API Link: https://nhl-score-api.herokuapp.com/api/scores?startDate=2022-5-2&endD
 Note: We were only allowed to access a certain range of dates so this implementation only
 follows the first round. 
 
-Demo: https://youtu.be/KqGBwXVMEzE
+Demo: https://youtu.be/yNh1eKz0dh8
