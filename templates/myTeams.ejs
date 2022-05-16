@@ -1,0 +1,66 @@
+<!-- DO NOT MODIFY THIS FILE -->
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<title>Follow A Team</title>
+	<link href="style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+	<h1>Follow A Team</h1>
+	<div>
+	<form action="/processMyTeams" method="post" id="myTeams" onsubmit="return validate()">
+		<fieldset>
+			<label> Team Abbrevation: <input type="text" name="name"/></label>
+			<br />
+			
+			
+			<p>Please enter your team's abbrevation (make sure the team entered is in the 2022 NHL Playoffs)</p>
+			<p>Possible Entries:</p>
+			<ul>
+				<li>BOS (Boston Bruins)</li>
+				<li>CAR (Carolina Hurricanes)</li>
+				<li>CGY (Calgary Flames)</li>
+				<li>COL (Colorado Avalanche)</li>
+				<li>DAL (Dallas Stars)</li>
+				<li>EDM (Edmonton Oilers)</li>
+				<li>FLA (Florida Panthers)</li>
+				<li>LAK (Los Angeles Kings)</li>
+				<li>MIN (Minnesota Wild)</li>
+				<li>NSH (Nashville Predators)</li>
+				<li>NYR (New York Rangers)</li>
+				<li>PIT (Pittsburgh Penguins)</li>
+				<li>STL (St. Louis Blues)</li>
+				<li>TBL (Tampa Bay Lightning)</li>
+				<li>TOR (Toronto Maple Leafs)</li>
+				<li>WSH (Washington Capitals)</li>				
+			</ul>
+		</fieldset>
+		</div>
+		<br>
+		<input type="reset" />
+		<input type="submit" value="Submit"/>
+	</form>
+	<hr></hr>
+	<a href="/">HOME</a>
+	
+</body>
+
+	<style>
+		label{
+			font-weight: bold;
+		}
+	</style>
+	<script>
+		function validate(){
+			let text = "Are you sure you want to submit this team? \nYou will not be able to change your information once submitted.";
+			if (confirm(text) == true){
+				return true;
+			} else {
+				return false;
+			}
+		}
+	</script>
+</html>

@@ -1,0 +1,31 @@
+<!-- DO NOT MODIFY THIS FILE -->
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<title>Removing All Teams</title>
+	<link href="style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+	<h1>Removing All Teams</h1>
+	<form action="/processRemoveAll" method="post" onsubmit="return validate()">
+		<input type="submit" value="Remove all teams"/>
+	</form>
+	<hr/>
+	<a href="/">HOME</a>
+</body>
+	<script>
+		function validate(){
+		let text = "Are you sure you want to remove all teams?";
+		if (confirm(text) == true){
+		return true;
+		} else {
+		return false;
+		}
+		}
+	</script>
+	
+</html>
+
