@@ -61,6 +61,7 @@ process.stdin.on("readable", function () {
   }
 });
 
+app.use( express.static( "templates" ) );
 
 // display homepage
 app.get("/", (request, response) => { 

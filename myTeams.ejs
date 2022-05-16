@@ -5,10 +5,12 @@
 <head>
 	<meta charset="utf-8" />
 	<title>Follow A Team</title>
+	<link href="style.css" rel="stylesheet" type="text/css">
 </head>
 
 <body>
 	<h1>Follow A Team</h1>
+	<div>
 	<form action="/processMyTeams" method="post" id="myTeams" onsubmit="return validate()">
 		<fieldset>
 			<label> Team Abbrevation: <input type="text" name="name"/></label>
@@ -36,13 +38,14 @@
 				<li>WSH (Washington Capitals)</li>				
 			</ul>
 		</fieldset>
-
-		<br></br>
+		</div>
+		<br>
 		<input type="reset" />
 		<input type="submit" value="Submit"/>
 	</form>
 	<hr></hr>
 	<a href="/">HOME</a>
+	
 </body>
 
 	<style>

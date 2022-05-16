@@ -1,0 +1,13 @@
+body {
+    background-image: url("./nhl-stanley-cup-logo.jpg");
+    background-repeat: no-repeat, repeat;
+    background-size: cover;
+}
+
+div {
+    background-color: rgba(255, 255, 255, 0.45);
+}
+
+h1 {
+    color: white;
+}

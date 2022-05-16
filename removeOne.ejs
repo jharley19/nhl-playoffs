@@ -5,16 +5,21 @@
 <head>
 	<meta charset="utf-8" />
 	<title>Removing One Team</title>
+	<link href="style.css" rel="stylesheet" type="text/css">
 </head>
 
 <body>
 	<h1>Removing One Team</h1>
-	<form action="/processRemoveOne" method="post" onsubmit="return validate()">
-		<label>Enter the team you wish to remove: 
-			<input type="text" name="name"></input>
-		</label>
-		<input type="submit" value="Remove Team"/>
-	</form>
+	<div>
+		<fieldset>
+			<form action="/processRemoveOne" method="post" onsubmit="return validate()">
+				<label>Enter the team you wish to remove: 
+					<input type="text" name="name"></input>
+				</label>
+				<input type="submit" value="Remove Team"/>
+			</form>
+		</fieldset>	
+	</div>
 	<hr/>
 	<a href="/">HOME</a>
 </body>
